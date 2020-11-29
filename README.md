@@ -2,12 +2,7 @@
 Deploy this project to your AWS account to get a **free** Dynamic DNS (No-IP like) service using Route 53, API Gateway, and Lambda. The project uses the :zap:[Serverless Framework](https://www.serverless.com/) to simplify development and continous deployment, so adding and removing this service from your AWS account is as simple as running one single command.
 
 To update your dynamic IP address in a Route 53 record, a simple HTTP call is needed to execute the following process:
-```mermaid
-graph LR
-U[<b>User / Scheduled Job</b>] -- HTTP request --> A[<b>API Gateway</b>]
-A[<b>API Gateway</b>] -- triggers --> B[<b>AWS Lambda</b>]
-B -- updates IP address in--> C[<b>Amazon Route 53</b>]
-```
+![AWS DDNS Architecture Diagram](https://labs.panchosoft.com/aws-ddns/aws-ddns-architecture.svg)
 
 ## Requirements
 + AWS account with a configured domain and hosted zone in AWS Route 53. 
