@@ -1,0 +1,20 @@
+{
+  "name": "aws-ddns",
+  "version": "1.0.0",
+  "description": "Dynamic DNS with AWS (Route 53, API Gateway, Route 53)",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "AWS",
+    "Lambda",
+    "Route",
+    "53",
+    "DDNS",
+    "DNS",
+    "NO-IP"
+  ],
+  "author": "Francisco Leyva",
+  "license": "ISC"
+}
