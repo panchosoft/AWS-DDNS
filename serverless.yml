@@ -1,15 +1,24 @@
+# Service name
 service: aws-ddns
 
+# Serverless Framework version
 frameworkVersion: ">=2.0.0"
 
+# Provider details
 provider:
   name: aws
   stage: ${opt:stage, 'prod'}
   region: ${opt:region, 'us-east-2'}
   runtime: nodejs12.x
-
+  iamRoleStatements:
+    - Effect: 'Allow'
+      Action:
+        - 'route53:ChangeResourceRecordSets'
+      Resource: '*'
+  
+# Functions declaration
 functions:
-  updateRoute:
+  updateDNS:
     handler: app.update
     events:
       - http:
