@@ -16,5 +16,8 @@
     "NO-IP"
   ],
   "author": "Francisco Leyva",
-  "license": "ISC"
+  "license": "ISC",
+  "devDependencies": {
+    "aws-sdk": "^2.799.0"
+  }
 }

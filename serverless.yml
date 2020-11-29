@@ -13,5 +13,5 @@ functions:
     handler: app.update
     events:
       - http:
-          path: ping
+          path: ddns
           method: get
