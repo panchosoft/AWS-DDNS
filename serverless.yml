@@ -4,11 +4,13 @@ frameworkVersion: ">=2.0.0"
 
 provider:
   name: aws
+  stage: ${opt:stage, 'prod'}
+  region: ${opt:region, 'us-east-2'}
   runtime: nodejs12.x
 
 functions:
   updateRoute:
-    handler: app.endpoint
+    handler: app.update
     events:
       - http:
           path: ping
