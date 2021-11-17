@@ -18,6 +18,6 @@
   "author": "Francisco Leyva",
   "license": "ISC",
   "devDependencies": {
-    "aws-sdk": "^2.799.0"
+    "aws-sdk": "^2.1031.0"
   }
 }
