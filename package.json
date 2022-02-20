@@ -1,6 +1,6 @@
 {
   "name": "aws-ddns",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Dynamic DNS with AWS (Route 53, API Gateway, Route 53)",
   "main": "app.js",
   "scripts": {
