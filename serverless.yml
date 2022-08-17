@@ -2,14 +2,14 @@
 service: aws-ddns
 
 # Serverless Framework version
-frameworkVersion: ">=3.0.0"
+frameworkVersion: ">=3.17.0"
 
 # Provider details
 provider:
   name: aws
   stage: ${opt:stage, 'prod'}
   region: ${opt:region, 'us-east-2'}
-  runtime: nodejs12.x
+  runtime: nodejs16.x
   iam:
     role:
       statements:
