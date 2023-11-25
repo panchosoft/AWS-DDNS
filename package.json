@@ -22,6 +22,6 @@
   "author": "Francisco Leyva",
   "license": "ISC",
   "devDependencies": {
-    "aws-sdk": "^2.1356.0"
+    "@aws-sdk/client-route-53": "^3.454.0"
   }
 }

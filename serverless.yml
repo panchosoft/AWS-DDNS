@@ -9,7 +9,7 @@ provider:
   name: aws
   stage: ${opt:stage, 'prod'}
   region: ${opt:region, 'us-east-2'}
-  runtime: nodejs16.x
+  runtime: nodejs20.x
   iam:
     role:
       statements:

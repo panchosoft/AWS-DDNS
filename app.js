@@ -1,54 +1,80 @@
 'use strict';
 
-// Import the Route 53 service client
-var Route53Client = require('aws-sdk/clients/route53');
-var route53 = new Route53Client();
+const { Route53Client, ChangeResourceRecordSetsCommand } = require('@aws-sdk/client-route-53');
 
-module.exports.update = (event, context, callback) => {
-  // Required params (errors written to CloudWatch logs)
-  if (!event.queryStringParameters.hosted_zone_id) { callback('Missing hosted_zone_id parameter'); return false; }
-  if (!event.queryStringParameters.record_name) { callback('Missing name parameter'); return false; }
-  if (!event.requestContext.identity.sourceIp) { callback('Missing IP parameter'); return false; }
+// Create an instance of the Route 53 client
+const route53 = new Route53Client();
 
-  // Success response
-  const response = {
-    statusCode: 200,
-    body: JSON.stringify({
-      message: `Success. Execution time: ${new Date().toTimeString()}.`,
-      // event: event,
-      // context: context
-    }),
-  };
+module.exports.update = async (event) => {
+  try {
+    // Required params (errors written to CloudWatch logs)
+    if (!event.queryStringParameters.hosted_zone_id) {
+      return {
+        statusCode: 400,
+        body: JSON.stringify({ message: 'Missing hosted_zone_id parameter' }),
+      };
+    }
 
-  // Route 53 client request params
-  var params = {
-    ChangeBatch: {
-      Changes: [
-        {
-          Action: "UPSERT", // Create or Update Route 53 record name
-          ResourceRecordSet: {
-            Name: event.queryStringParameters.record_name, // Record name
-            ResourceRecords: [
-              {
-                Value: event.requestContext.identity.sourceIp // Request's IP address
-              }
-            ],
-            TTL: 300, // Time to live
-            Type: "A" // Record Type
-          }
-        }
-      ]
-    },
-    HostedZoneId: event.queryStringParameters.hosted_zone_id // Route 53 Hosted Zone Id
-  };
+    if (!event.queryStringParameters.record_name) {
+      return {
+        statusCode: 400,
+        body: JSON.stringify({ message: 'Missing record name parameter' }),
+      };
+    }
 
-  // Create/Update Route 53 record name based on the specified hosted zone id and record name
-  route53.changeResourceRecordSets(params, function (err, data) {
+    if (!event.requestContext.identity.sourceIp) {
+      return {
+        statusCode: 400,
+        body: JSON.stringify({ message: 'Missing IP parameter' }),
+      };
+    }
+
+    // Route 53 client request params
+    const params = {
+      ChangeBatch: {
+        Changes: [
+          {
+            Action: 'UPSERT', // Create or Update Route 53 record name
+            ResourceRecordSet: {
+              Name: event.queryStringParameters.record_name, // Record name
+              ResourceRecords: [
+                {
+                  Value: event.requestContext.identity.sourceIp, // Request's IP address
+                },
+              ],
+              TTL: 300, // Time to live
+              Type: 'A', // Record Type
+            },
+          },
+        ],
+      },
+      HostedZoneId: event.queryStringParameters.hosted_zone_id, // Route 53 Hosted Zone Id
+    };
+
+    // Create/Update Route 53 record name based on the specified hosted zone id and record name
+    const data = await route53.send(new ChangeResourceRecordSetsCommand(params));
+
     // Write result to CloudWatch logs
-    if (err) console.log(err, err.stack); // An error occurred
-    else console.log(data);           // Successful response
+    console.log(data);
 
-    // Return response
-    callback(null, response);
-  });
+    // Success response
+    return {
+      statusCode: 200,
+      body: JSON.stringify({
+        message: `Success. Execution time: ${new Date().toTimeString()}.`,
+      }),
+    };
+  } catch (error) {
+    // Write error to CloudWatch logs
+    console.error(error);
+
+    // Error response
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ message: 'Internal Server Error' }),
+    };
+  } finally {
+    // Close the Route53 client
+    await route53.destroy();
+  }
 };
