@@ -4,7 +4,7 @@ Deploy this project to your AWS account to get a **free** Dynamic DNS (No-IP lik
 To update your dynamic IP address in a Route 53 record, a simple HTTP call is needed to execute the following process:
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="https://github.com/user-attachments/assets/b55456b2-97cb-4396-a501-e426ceb9fb00">
+  <source media="(prefers-color-scheme: dark)" srcset="https://github.com/user-attachments/assets/53be45a6-bd7b-4e88-a9fa-30aa54360e55">
   <source media="(prefers-color-scheme: light)" srcset="https://github.com/user-attachments/assets/2ce98cf2-21e0-49a3-946a-867abc1a68d4">
   <img alt="Shows an illustrated sun in light mode and a moon with stars in dark mode." src="https://github.com/user-attachments/assets/2ce98cf2-21e0-49a3-946a-867abc1a68d4">
 </picture>
