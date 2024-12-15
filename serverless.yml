@@ -2,7 +2,7 @@
 service: aws-ddns
 
 # Serverless Framework version
-frameworkVersion: ">=3.17.0"
+frameworkVersion: ">=3.39.0"
 
 # Provider details
 provider:
