@@ -2,6 +2,16 @@ AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: AWS Dynamic DNS Service
 
+Parameters:
+  Environment:
+    Type: String
+    Default: dev
+    AllowedValues:
+      - dev
+      - staging
+      - prod
+    Description: Environment name for resource naming
+
 Globals:
   Function:
     Timeout: 10
@@ -11,6 +21,7 @@ Resources:
   UpdateDNSFunction:
     Type: AWS::Serverless::Function
     Properties:
+      FunctionName: !Sub 'aws-ddns-${Environment}-UpdateDNSFunction'
       CodeUri: .
       Handler: app.update
       Architectures:
