@@ -41,4 +41,4 @@ npm install
 
 Requires AWS SAM CLI installed: https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/install-sam-cli.html
 
-The entire application logic is in `app.js` (single Lambda handler). Infrastructure is defined in `template.yaml`. Runtime is Node.js 20.x.
+The entire application logic is in `app.js` (single Lambda handler). Infrastructure is defined in `template.yaml`. Runtime is Node.js 24.x.
