@@ -1,5 +1,5 @@
-# AWS Dynamic DNS (No-IP) Service 
-Deploy this project to your AWS account to get a **free** Dynamic DNS (No-IP like) service using Route 53, API Gateway, and Lambda. The project uses the :zap:[Serverless Framework](https://www.serverless.com/) to simplify development and continous deployment, so adding and removing this service from your AWS account is as simple as running one single command.
+# AWS Dynamic DNS (No-IP) Service
+Deploy this project to your AWS account to get a **free** Dynamic DNS (No-IP like) service using Route 53, API Gateway, and Lambda. The project uses :zap:[AWS SAM (Serverless Application Model)](https://aws.amazon.com/serverless/sam/) to simplify development and continuous deployment, so adding and removing this service from your AWS account is as simple as running one single command.
 
 To update your dynamic IP address in a Route 53 record, a simple HTTP call is needed to execute the following process:
 
@@ -10,22 +10,21 @@ To update your dynamic IP address in a Route 53 record, a simple HTTP call is ne
 </picture>
 
 ## Requirements
-+ AWS account with a configured domain and hosted zone in AWS Route 53. 
-+ AWS CLI ([https://aws.amazon.com/cli](https://aws.amazon.com/cli))
++ AWS account with a configured domain and hosted zone in AWS Route 53
++ AWS CLI configured with credentials ([https://aws.amazon.com/cli](https://aws.amazon.com/cli))
++ AWS SAM CLI ([https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/install-sam-cli.html](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/install-sam-cli.html))
 + Git ([https://git-scm.com/downloads](https://git-scm.com/downloads))
-+ Npm Package Manager ([https://www.npmjs.com/get-npm](https://www.npmjs.com/get-npm))
++ Node.js and npm ([https://www.npmjs.com/get-npm](https://www.npmjs.com/get-npm))
 
 ## Installation
 Using a terminal, move to a new directory and clone this Git project:
 ```bash
 git clone https://github.com/panchosoft/AWS-DDNS.git
+cd AWS-DDNS
 ```
-Use [npm](https://www.npmjs.com/get-npm) to install the application.
+Install the dependencies:
 
 ```bash
-# Install Serverless Framework
-npm install -g serverless
-# Install package dependencies
 npm install
 ```
 
@@ -33,20 +32,32 @@ npm install
 ### 1) Deploy service to AWS
 Run the following command in a terminal to deploy the service to your AWS account:
 ```bash
-serverless deploy
+# First time deployment (interactive setup)
+sam deploy --guided
 ```
-You should receive a similar output as the one displayed in the image below. The green mark indicates the endpoint URL that allows updating the DNS record value.
-![Serverless deploy command output](https://labs.panchosoft.com/aws-ddns/aws-ddns-deploy.png)
+Follow the prompts:
+- **Stack Name**: `aws-ddns` (or your preferred name)
+- **AWS Region**: `us-east-2` (or your preferred region)
+- **Confirm changes before deploy**: Y
+- **Allow SAM CLI IAM role creation**: Y
+- **Save arguments to samconfig.toml**: Y
+
+After the first deployment, you can simply run:
+```bash
+sam deploy
+```
+
+The output will show the API Gateway endpoint URL that allows updating the DNS record value.
 ### 2) Create/Update hosted zone record
 Use a web browser or cURL to call the endpoint URL and include the following two URL parameters:
-###
+
 + hosted_zone_id = XXXXXXXXXXXX (Get your Hosted Zone ID here: https://console.aws.amazon.com/route53/v2/hostedzones)
 + record_name = mydns.mydomain.com
 
 **Command Example**
 ```bash
-# Call the endpoint URL
-curl "https://1cjix7wahb.execute-api.us-east-2.amazonaws.com/prod/ddns?hosted_zone_id=XXXXXXXXXXXX&record_name=mydns.mydomain.com"
+# Call the endpoint URL (replace with your actual endpoint from sam deploy output)
+curl "https://xxxxxxxxxx.execute-api.us-east-2.amazonaws.com/Prod/ddns?hosted_zone_id=XXXXXXXXXXXX&record_name=mydns.mydomain.com"
 ```
 A new record entry will be created in Route 53 including the specified record name and the IP address of the device that sent the request. If the record name already exists, only its value will be updated.
 
@@ -58,4 +69,4 @@ Here's an example of a crontab entry to schedule a call to the endpoint in a Lin
 
 ```bash
 # Execute the curl command every 12 hours (crontab entry)
-0 */12 * * * /usr/bin/curl -q "https://1cjix7wahb.execute-api.us-east-2.amazonaws.com/prod/ddns?hosted_zone_id=XXXXXXXXXXXX&record_name=mydns.mydomain.com" 2>&1 > /dev/null
+0 */12 * * * /usr/bin/curl -q "https://xxxxxxxxxx.execute-api.us-east-2.amazonaws.com/Prod/ddns?hosted_zone_id=XXXXXXXXXXXX&record_name=mydns.mydomain.com" 2>&1 > /dev/null

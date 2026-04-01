@@ -1,2 +1,4 @@
 node_modules
 .serverless
+.aws-sam
+samconfig.toml

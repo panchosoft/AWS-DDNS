@@ -18,17 +18,20 @@ The Lambda handler requires two query parameters: `hosted_zone_id` and `record_n
 ## Commands
 
 ```bash
-# Deploy to AWS (defaults: prod stage, us-east-2 region)
-serverless deploy
+# First-time deployment (interactive setup)
+sam deploy --guided
 
-# Deploy to specific stage/region
-serverless deploy --stage dev --region us-west-2
+# Subsequent deployments
+sam deploy
 
-# Remove service from AWS
-serverless remove
+# Deploy to specific region/stack name
+sam deploy --region us-west-2 --stack-name aws-ddns-dev
 
 # View logs in real-time
-serverless logs -f updateDNS --tail
+sam logs -n UpdateDNSFunction --tail
+
+# Remove service from AWS
+sam delete
 
 # Install dependencies
 npm install
@@ -36,6 +39,6 @@ npm install
 
 ## Development Setup
 
-Requires Serverless Framework installed globally: `npm install -g serverless`
+Requires AWS SAM CLI installed: https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/install-sam-cli.html
 
-The entire application logic is in `app.js` (single Lambda handler). Runtime is Node.js 20.x as configured in `serverless.yml`.
+The entire application logic is in `app.js` (single Lambda handler). Infrastructure is defined in `template.yaml`. Runtime is Node.js 20.x.
