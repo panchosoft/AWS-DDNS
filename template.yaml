@@ -5,7 +5,7 @@ Description: AWS Dynamic DNS Service
 Globals:
   Function:
     Timeout: 10
-    Runtime: nodejs24.x
+    Runtime: nodejs20.x
 
 Resources:
   UpdateDNSFunction:
@@ -13,6 +13,8 @@ Resources:
     Properties:
       CodeUri: .
       Handler: app.update
+      Architectures:
+        - arm64
       Policies:
         - Statement:
             - Effect: Allow
