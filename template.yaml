@@ -1,0 +1,47 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: AWS Dynamic DNS Service
+
+Parameters:
+  Environment:
+    Type: String
+    Default: dev
+    AllowedValues:
+      - dev
+      - staging
+      - prod
+    Description: Environment name for resource naming
+
+Globals:
+  Function:
+    Timeout: 10
+    Runtime: nodejs20.x
+
+Resources:
+  UpdateDNSFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub 'aws-ddns-${Environment}-UpdateDNSFunction'
+      CodeUri: .
+      Handler: app.update
+      Architectures:
+        - arm64
+      Policies:
+        - Statement:
+            - Effect: Allow
+              Action: route53:ChangeResourceRecordSets
+              Resource: '*'
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            Path: /ddns
+            Method: get
+
+Outputs:
+  ApiEndpoint:
+    Description: "API Gateway endpoint URL"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/ddns"
+  FunctionName:
+    Description: "Lambda Function Name"
+    Value: !Ref UpdateDNSFunction

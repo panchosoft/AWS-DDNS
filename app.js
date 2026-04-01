@@ -7,74 +7,75 @@ const route53 = new Route53Client();
 
 module.exports.update = async (event) => {
   try {
-    // Required params (errors written to CloudWatch logs)
-    if (!event.queryStringParameters.hosted_zone_id) {
+    // Validate query parameters exist
+    const params = event.queryStringParameters || {};
+    const sourceIp = event.requestContext?.identity?.sourceIp;
+
+    if (!params.hosted_zone_id) {
       return {
         statusCode: 400,
-        body: JSON.stringify({ message: 'Missing hosted_zone_id parameter' }),
+        body: JSON.stringify({ message: 'Missing required parameter: hosted_zone_id' }),
       };
     }
 
-    if (!event.queryStringParameters.record_name) {
+    if (!params.record_name) {
       return {
         statusCode: 400,
-        body: JSON.stringify({ message: 'Missing record name parameter' }),
+        body: JSON.stringify({ message: 'Missing required parameter: record_name' }),
       };
     }
 
-    if (!event.requestContext.identity.sourceIp) {
+    if (!sourceIp) {
       return {
         statusCode: 400,
-        body: JSON.stringify({ message: 'Missing IP parameter' }),
+        body: JSON.stringify({ message: 'Unable to determine source IP address' }),
       };
     }
 
     // Route 53 client request params
-    const params = {
+    const changeParams = {
       ChangeBatch: {
         Changes: [
           {
-            Action: 'UPSERT', // Create or Update Route 53 record name
+            Action: 'UPSERT',
             ResourceRecordSet: {
-              Name: event.queryStringParameters.record_name, // Record name
-              ResourceRecords: [
-                {
-                  Value: event.requestContext.identity.sourceIp, // Request's IP address
-                },
-              ],
-              TTL: 300, // Time to live
-              Type: 'A', // Record Type
+              Name: params.record_name,
+              ResourceRecords: [{ Value: sourceIp }],
+              TTL: 300,
+              Type: 'A',
             },
           },
         ],
       },
-      HostedZoneId: event.queryStringParameters.hosted_zone_id, // Route 53 Hosted Zone Id
+      HostedZoneId: params.hosted_zone_id,
     };
 
-    // Create/Update Route 53 record name based on the specified hosted zone id and record name
-    const data = await route53.send(new ChangeResourceRecordSetsCommand(params));
+    // Create/Update Route 53 record
+    const data = await route53.send(new ChangeResourceRecordSetsCommand(changeParams));
 
-    // Write result to CloudWatch logs
-    console.log(data);
+    console.log('DNS record updated:', { record: params.record_name, ip: sourceIp, changeId: data.ChangeInfo.Id });
 
-    // Success response
     return {
       statusCode: 200,
       body: JSON.stringify({
-        message: `Success. Execution time: ${new Date().toTimeString()}.`,
+        message: 'DNS record updated successfully',
+        record: params.record_name,
+        ip: sourceIp,
+        changeId: data.ChangeInfo.Id,
       }),
     };
   } catch (error) {
-    // Write error to CloudWatch logs
-    console.error(error);
+    console.error('Error updating DNS record:', error);
 
-    // Error response
+    // Return specific error for Route53 issues
+    const isRoute53Error = error.name === 'InvalidChangeBatch' || error.name === 'NoSuchHostedZone';
+
     return {
-      statusCode: 500,
-      body: JSON.stringify({ message: 'Internal Server Error' }),
+      statusCode: isRoute53Error ? 400 : 500,
+      body: JSON.stringify({
+        message: isRoute53Error ? 'Invalid hosted zone or record configuration' : 'Internal server error',
+        error: error.message,
+      }),
     };
-  } finally {
-    // Close the Route53 client
-    await route53.destroy();
   }
 };
