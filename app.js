@@ -7,6 +7,15 @@ const route53 = new Route53Client();
 
 module.exports.update = async (event) => {
   try {
+    // Authenticate request using API key from Authorization header or x-api-key header
+    const apiKey = (event.headers || {})['x-api-key'] || (event.headers || {})['X-Api-Key'];
+    if (!process.env.API_KEY || apiKey !== process.env.API_KEY) {
+      return {
+        statusCode: 401,
+        body: JSON.stringify({ message: 'Unauthorized' }),
+      };
+    }
+
     // Validate query parameters exist
     const params = event.queryStringParameters || {};
     const sourceIp = event.requestContext?.identity?.sourceIp;
