@@ -48,6 +48,13 @@ sam deploy
 ```
 
 The output will show the API Gateway endpoint URL that allows updating the DNS record value.
+
+#### Optional: require an API key
+By default, the endpoint accepts requests from anyone who knows your hosted zone ID and record name. If you'd like to restrict access, you can optionally set the `ApiKey` parameter during deployment:
+```bash
+sam deploy --parameter-overrides ApiKey=your-secret-key
+```
+When `ApiKey` is set, requests must include it either as an `x-api-key` header or an `api_key` query parameter, or they'll be rejected with a 401 response. Leave it unset (the default) to keep the endpoint open, as before.
 ### 2) Create/Update hosted zone record
 Use a web browser or cURL to call the endpoint URL and include the following two URL parameters:
 
@@ -58,6 +65,10 @@ Use a web browser or cURL to call the endpoint URL and include the following two
 ```bash
 # Call the endpoint URL (replace with your actual endpoint from sam deploy output)
 curl "https://xxxxxxxxxx.execute-api.us-east-2.amazonaws.com/Prod/ddns?hosted_zone_id=XXXXXXXXXXXX&record_name=mydns.mydomain.com"
+```
+If you configured an `ApiKey`, include it in the request:
+```bash
+curl -H "x-api-key: your-secret-key" "https://xxxxxxxxxx.execute-api.us-east-2.amazonaws.com/Prod/ddns?hosted_zone_id=XXXXXXXXXXXX&record_name=mydns.mydomain.com"
 ```
 A new record entry will be created in Route 53 including the specified record name and the IP address of the device that sent the request. If the record name already exists, only its value will be updated.
 

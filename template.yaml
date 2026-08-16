@@ -11,6 +11,11 @@ Parameters:
       - staging
       - prod
     Description: Environment name for resource naming
+  ApiKey:
+    Type: String
+    Default: ''
+    NoEcho: true
+    Description: Optional API key required to call the endpoint (sent via x-api-key header or api_key query parameter). Leave blank to allow unauthenticated requests.
 
 Globals:
   Function:
@@ -26,6 +31,9 @@ Resources:
       Handler: app.update
       Architectures:
         - arm64
+      Environment:
+        Variables:
+          API_KEY: !Ref ApiKey
       Policies:
         - Statement:
             - Effect: Allow

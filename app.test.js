@@ -8,13 +8,18 @@ const route53Mock = mockClient(Route53Client);
 
 beforeEach(() => {
   route53Mock.reset();
+  delete process.env.API_KEY;
 });
 
-function buildEvent({ hosted_zone_id, record_name, sourceIp } = {}) {
+function buildEvent({ hosted_zone_id, record_name, sourceIp, apiKey, apiKeyHeader } = {}) {
   return {
     queryStringParameters: {
       ...(hosted_zone_id !== undefined && { hosted_zone_id }),
       ...(record_name !== undefined && { record_name }),
+      ...(apiKey !== undefined && { api_key: apiKey }),
+    },
+    headers: {
+      ...(apiKeyHeader !== undefined && { 'x-api-key': apiKeyHeader }),
     },
     requestContext: {
       identity: { sourceIp },
@@ -131,5 +136,77 @@ describe('update', () => {
     const body = JSON.parse(result.body);
     expect(body.message).toBe('Internal server error');
     expect(body.error).toBe('Something went wrong');
+  });
+
+  describe('optional API key', () => {
+    it('allows the request when no API_KEY is configured, even without a key', async () => {
+      route53Mock.on(ChangeResourceRecordSetsCommand).resolves({
+        ChangeInfo: { Id: '/change/C123', Status: 'PENDING' },
+      });
+      const event = buildEvent({ hosted_zone_id: 'Z123', record_name: 'home.example.com', sourceIp: '1.2.3.4' });
+
+      const result = await update(event);
+
+      expect(result.statusCode).toBe(200);
+    });
+
+    it('returns 401 when API_KEY is configured but no key is provided', async () => {
+      process.env.API_KEY = 'secret';
+      const event = buildEvent({ hosted_zone_id: 'Z123', record_name: 'home.example.com', sourceIp: '1.2.3.4' });
+
+      const result = await update(event);
+
+      expect(result.statusCode).toBe(401);
+      expect(JSON.parse(result.body).message).toBe('Invalid or missing API key');
+      expect(route53Mock.calls()).toHaveLength(0);
+    });
+
+    it('returns 401 when the provided key does not match', async () => {
+      process.env.API_KEY = 'secret';
+      const event = buildEvent({
+        hosted_zone_id: 'Z123',
+        record_name: 'home.example.com',
+        sourceIp: '1.2.3.4',
+        apiKey: 'wrong',
+      });
+
+      const result = await update(event);
+
+      expect(result.statusCode).toBe(401);
+    });
+
+    it('allows the request when the api_key query parameter matches', async () => {
+      process.env.API_KEY = 'secret';
+      route53Mock.on(ChangeResourceRecordSetsCommand).resolves({
+        ChangeInfo: { Id: '/change/C123', Status: 'PENDING' },
+      });
+      const event = buildEvent({
+        hosted_zone_id: 'Z123',
+        record_name: 'home.example.com',
+        sourceIp: '1.2.3.4',
+        apiKey: 'secret',
+      });
+
+      const result = await update(event);
+
+      expect(result.statusCode).toBe(200);
+    });
+
+    it('allows the request when the x-api-key header matches', async () => {
+      process.env.API_KEY = 'secret';
+      route53Mock.on(ChangeResourceRecordSetsCommand).resolves({
+        ChangeInfo: { Id: '/change/C123', Status: 'PENDING' },
+      });
+      const event = buildEvent({
+        hosted_zone_id: 'Z123',
+        record_name: 'home.example.com',
+        sourceIp: '1.2.3.4',
+        apiKeyHeader: 'secret',
+      });
+
+      const result = await update(event);
+
+      expect(result.statusCode).toBe(200);
+    });
   });
 });
