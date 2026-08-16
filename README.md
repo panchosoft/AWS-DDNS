@@ -81,3 +81,10 @@ Here's an example of a crontab entry to schedule a call to the endpoint in a Lin
 ```bash
 # Execute the curl command every 12 hours (crontab entry)
 0 */12 * * * /usr/bin/curl -q "https://xxxxxxxxxx.execute-api.us-east-2.amazonaws.com/Prod/ddns?hosted_zone_id=XXXXXXXXXXXX&record_name=mydns.mydomain.com" 2>&1 > /dev/null
+```
+
+If you configured an `ApiKey`, include it in the crontab entry as well:
+
+```bash
+# Execute the curl command every 12 hours (crontab entry), including the API key
+0 */12 * * * /usr/bin/curl -q -H "x-api-key: your-secret-key" "https://xxxxxxxxxx.execute-api.us-east-2.amazonaws.com/Prod/ddns?hosted_zone_id=XXXXXXXXXXXX&record_name=mydns.mydomain.com" 2>&1 > /dev/null
