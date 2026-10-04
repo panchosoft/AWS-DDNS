@@ -1,6 +1,6 @@
-# CLAUDE.md
+# AGENTS.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides guidance to AI coding agents (e.g. Claude Code) when working with code in this repository.
 
 ## Project Overview
 
@@ -13,7 +13,9 @@ The application has a simple serverless flow:
 - **Lambda function** (`app.update` in `app.js`) extracts the caller's IP from `event.requestContext.identity.sourceIp` and performs an UPSERT operation on Route 53
 - **Route 53** stores the DNS A record with the IP address
 
-The Lambda handler requires two query parameters: `hosted_zone_id` and `record_name`. It uses AWS SDK v3 (`@aws-sdk/client-route-53`) with `route53:ChangeResourceRecordSets` IAM permission (configured in `serverless.yml`). Records are created with TTL of 300 seconds.
+The Lambda handler requires two query parameters: `hosted_zone_id` and `record_name`. It uses AWS SDK v3 (`@aws-sdk/client-route-53`) with `route53:ChangeResourceRecordSets` IAM permission (configured in `template.yaml`). Records are created with TTL of 300 seconds.
+
+Optional API key auth: if the `API_KEY` environment variable is set (via the `ApiKey` SAM parameter), `isAuthorized()` in `app.js` requires a matching `x-api-key` header or `api_key` query parameter, compared with `crypto.timingSafeEqual`. If `API_KEY` is unset, the endpoint stays open. See the "Optional: require an API key" section in `README.md` for deployment usage.
 
 ## Commands
 
@@ -35,10 +37,13 @@ sam delete
 
 # Install dependencies
 npm install
+
+# Run tests
+npm test
 ```
 
 ## Development Setup
 
 Requires AWS SAM CLI installed: https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/install-sam-cli.html
 
-The entire application logic is in `app.js` (single Lambda handler). Infrastructure is defined in `template.yaml`. Runtime is Node.js 24.x.
+The entire application logic is in `app.js` (single Lambda handler). Infrastructure is defined in `template.yaml`. Lambda runs on Node.js 20.x (arm64). Tests live in `app.test.js` and use Jest with `aws-sdk-client-mock` to stub the Route 53 client.
