@@ -1,12 +1,33 @@
 'use strict';
 
+const crypto = require('crypto');
 const { Route53Client, ChangeResourceRecordSetsCommand } = require('@aws-sdk/client-route-53');
 
 // Create an instance of the Route 53 client
 const route53 = new Route53Client();
 
+function isAuthorized(event) {
+  const expectedApiKey = process.env.API_KEY;
+  if (!expectedApiKey) {
+    return true;
+  }
+
+  const providedApiKey = event.headers?.['x-api-key'] || event.queryStringParameters?.api_key || '';
+  const expected = Buffer.from(expectedApiKey);
+  const provided = Buffer.from(providedApiKey);
+
+  return expected.length === provided.length && crypto.timingSafeEqual(expected, provided);
+}
+
 module.exports.update = async (event) => {
   try {
+    if (!isAuthorized(event)) {
+      return {
+        statusCode: 401,
+        body: JSON.stringify({ message: 'Invalid or missing API key' }),
+      };
+    }
+
     // Validate query parameters exist
     const params = event.queryStringParameters || {};
     const sourceIp = event.requestContext?.identity?.sourceIp;
